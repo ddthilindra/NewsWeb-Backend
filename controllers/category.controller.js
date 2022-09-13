@@ -12,6 +12,7 @@ exports.addCategory = async function (req, res) {
     } else {
       const category = new Category({
         category: req.body.category,
+        description: req.body.description,
       });
       await category.save();
 

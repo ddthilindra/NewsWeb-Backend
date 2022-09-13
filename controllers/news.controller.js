@@ -6,6 +6,7 @@ const messages = require("../messages/messages");
 const image = "not found";
 
 exports.addNews = async function (req, res) {
+  console.log(req.body) 
   const body = req.body;
   let result;
   if (req.file) {
