@@ -62,6 +62,32 @@ exports.getNewsById = async function (req, res) {
       .json({ code: 500, success: false, message: "Internal Server Error" });
   }
 };
+exports.getNewsByCategory = async function (req, res) {
+  try {
+    const category = req.params.category;
+    console.log(category)
+    const news = await News.find({category:category});
+    console.log(news);
+    if (!news) {
+      return res.status(200).json({
+        code: 200,
+        success: false,
+        message: `No News found!`,
+      });
+    } else {
+      return res.status(200).json({
+        code: 200,
+        success: true,
+        data: news,
+        message: `News is received`,
+      });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ code: 500, success: false, message: "Internal Server Error" });
+  }
+};
 
 exports.getAllNews = async function (req, res) {
   News.find()

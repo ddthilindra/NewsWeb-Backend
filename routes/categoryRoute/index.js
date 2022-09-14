@@ -2,8 +2,8 @@ const routes = require("express").Router();
 const CategoryController = require("../../controllers/Category.controller");
 const utils = require("../../lib/utils");
 
-routes.post("/AddCategory", utils.authMiddleware,  CategoryController.addCategory);
-routes.get("/GetAllCategory", utils.authMiddleware, CategoryController.getAllCategory);
-routes.delete("/DeleteCategoryById/:id", utils.authMiddleware, CategoryController.deleteCategoryById);
+routes.post("/addCategory", utils.authMiddleware,  CategoryController.addCategory);
+routes.get("/getAllCategory", CategoryController.getAllCategory);
+routes.delete("/deleteCategoryById/:id", utils.authMiddleware, CategoryController.deleteCategoryById);
 
 module.exports = routes;

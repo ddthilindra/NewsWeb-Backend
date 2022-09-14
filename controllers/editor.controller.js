@@ -1,4 +1,4 @@
-const User = require("../models/user.model");
+const Editor = require("../models/editor.model");
 const cloudinary = require("../lib/cloudinary");
 
 const image = "not found";
@@ -9,7 +9,7 @@ const jsonwebtoken = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { userRegistrationValidation, loginValidate } = require("../validation");
 
-exports.addUser = async function (req, res) {
+exports.addEditor = async function (req, res) {
   const body = req.body;
   let result;
   if (req.file) {
@@ -28,22 +28,24 @@ exports.addUser = async function (req, res) {
       message: error.details[0].message,
     });
 
-  const emailExist = await User.findOne({ email: req.body.email });
+  const emailExist = await Editor.findOne({ email: req.body.email });
   if (emailExist)
     return res
       .status(200)
       .json({ code: 200, success: true, message: "Email already available" });
 
-  const user = new User({
-    userName: req.body.userName,
+  const editor = new Editor({
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
     email: req.body.email,
     image: result?.secure_url || image,
     password: req.body.password,
-    type: "Admin",
+    mobile: req.body.mobile,
+    type: "Editor",
   });
   try {
-    var savedUser = await user.save();
-    const token = utils.generateAuthToken(savedUser);
+    var savedEditor = await editor.save();
+    const token = utils.generateAuthToken(savedEditor);
     res.status(200).json({
       code: 200,
       success: true,
@@ -57,7 +59,7 @@ exports.addUser = async function (req, res) {
   }
 };
 
-exports.loginUser = async function (req, res) {
+exports.loginEditor = async function (req, res) {
   try {
     const { error } = loginValidate(req.body);
     if (error)
@@ -67,24 +69,24 @@ exports.loginUser = async function (req, res) {
         message: error.details[0].message,
       });
 
-    const user = await User.findOne({ email: req.body.email }).select(
+    const editor = await Editor.findOne({ email: req.body.email }).select(
       "+password"
     );
-    if (!user)
+    if (!editor)
       return res
         .status(200)
         .json({ code: 200, success: false, message: "Invalid Email" });
 
     const validPassword = await bcrypt.compare(
       req.body.password,
-      user.password
+      editor.password
     );
 
     if (!validPassword)
       return res
         .status(200)
         .json({ code: 200, success: false, message: "Invalid Password" });
-    const token = utils.generateAuthToken(user);
+    const token = utils.generateAuthToken(editor);
     res.status(200).json({
       code: 200,
       success: true,
@@ -101,16 +103,16 @@ exports.loginUser = async function (req, res) {
 exports.forgotPassword = async function (req, res, next) {
   const { email } = req.body;
   try {
-    const user = await User.findOne({ email });
-    if (!user) {
+    const editor = await Editor.findOne({ email });
+    if (!editor) {
       return res
         .status(200)
-        .json({ code: 200, success: false, message: "User not found" });
+        .json({ code: 200, success: false, message: "Editor not found" });
     }
 
-    const token = utils.generateAuthToken(user);
+    const token = utils.generateAuthToken(editor);
 
-    sendForgotEmail(token.token, user);
+    sendForgotEmail(token.token, editor);
     res.status(200).json({
       code: 200,
       success: true,
@@ -137,8 +139,8 @@ exports.resetPassword = async function (req, res) {
             tokenParts[1],
             process.env.ACCESS_TOKEN_SECRET
           );
-          const user = await User.findOne({ email: verification.sub.email });
-          if (!user) {
+          const editor = await Editor.findOne({ email: verification.sub.email });
+          if (!editor) {
             return res.status(200).json({
               code: 200,
               success: false,
@@ -146,13 +148,13 @@ exports.resetPassword = async function (req, res) {
               msg: "Token is invalid. Please contact Administrator",
             });
           }
-          user.password = req.body.password;
-          await user.save();
-          const token = utils.generateAuthToken(user);
+          editor.password = req.body.password;
+          await editor.save();
+          const token = utils.generateAuthToken(editor);
           res.status(200).json({
             code: 200,
             success: true,
-            data: user,
+            data: editor,
             token: token,
             message: "Password reset successfully",
           });
@@ -187,23 +189,23 @@ exports.resetPassword = async function (req, res) {
   }
 };
 
-exports.getUser = function (req, res) {
+exports.getEditor = function (req, res) {
   let followers = [];
   let following = [];
   try {
-    User.findById(req.params.id, function (err, user) {
-      followers = user.followers;
-      following = user.following;
+    Editor.findById(req.params.id, function (err, editor) {
+      followers = editor.followers;
+      following = editor.following;
       if (err) {
         return res
           .status(200)
           .json({ code: 200, success: false, message: "Invalid ID!" });
       }
-      if (user) {
+      if (editor) {
         res.status(200).json({
           code: 200,
           success: true,
-          data: user,
+          data: editor,
           followersCount: followers.length,
           followingsCount: following.length,
           message: "Profile is received",
@@ -212,7 +214,7 @@ exports.getUser = function (req, res) {
         res.status(200).json({
           code: 200,
           success: false,
-          data: user,
+          data: editor,
           message: "Profile is not found",
         });
       }
@@ -224,26 +226,26 @@ exports.getUser = function (req, res) {
   }
 };
 
-exports.getAllUsers = async function (req, res) {
-  User.find()
+exports.getAllEditors = async function (req, res) {
+  Editor.find()
     .then((data) => {
       return res.status(200).json({
         code: 200,
         success: true,
         data: data,
-        message: "Users are received",
+        message: "Editors are received",
       });
     })
     .catch((err) => {
       res.status(500).send({
-        message: err.message || "Some error occurred while retrieving User.",
+        message: err.message || "Some error occurred while retrieving Editor.",
       });
     });
 };
 
-exports.updateUserProfileByID = async function (req, res) {
+exports.updateEditorByID = async function (req, res) {
   try {
-    let user = await User.findById(req.params.id);
+    let editor = await Editor.findById(req.params.id);
     let result;
 
     if (req.file) {
@@ -251,21 +253,21 @@ exports.updateUserProfileByID = async function (req, res) {
     }
 
     const data = {
-      userName: req.body.userName || user.userName,
-      image: result?.secure_url || user.image,
-      email: req.body.email || user.email,
-      language: req.body.language || user.language,
-      about: req.body.about || user.about,
-      fcm_token: req.body.fcm_token || user.fcm_token,
+      userName: req.body.userName || editor.userName,
+      image: result?.secure_url || editor.image,
+      email: req.body.email || editor.email,
+      language: req.body.language || editor.language,
+      about: req.body.about || editor.about,
+      fcm_token: req.body.fcm_token || editor.fcm_token,
     };
 
     console.log("data", data);
-    user = await User.findByIdAndUpdate(req.params.id, data, { new: true });
+    editor = await Editor.findByIdAndUpdate(req.params.id, data, { new: true });
     res.status(200).json({
       code: 200,
       success: true,
-      data: user,
-      message: "User Updated Successfully!",
+      data: editor,
+      message: "Editor Updated Successfully!",
     });
   } catch (err) {
     res
@@ -274,22 +276,22 @@ exports.updateUserProfileByID = async function (req, res) {
   }
 };
 
-exports.getProfileId = async function (req, res) {
+exports.getEditorById = async function (req, res) {
   try {
     const email = req.body.email;
-    const user = await User.findOne({ email });
-    if (!user) {
+    const editor = await Editor.findOne({ email });
+    if (!editor) {
       return res.status(200).json({
         code: 200,
         success: false,
-        message: `No valid user with this email : ${email}`,
+        message: `No valid editor with this email : ${email}`,
       });
     } else {
       return res.status(200).json({
         code: 200,
         success: true,
-        message: `User with this email : ${email}`,
-        data: user,
+        message: `Editor with this email : ${email}`,
+        data: editor,
       });
     }
   } catch (error) {

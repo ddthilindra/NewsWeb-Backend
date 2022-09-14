@@ -2,8 +2,12 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 var Schema = mongoose.Schema;
 
-const userSchema = new Schema({
-    userName: {
+const editorSchema = new Schema({
+    firstName: {
+        type: String,
+        required: true,
+    },
+    lastName: {
         type: String,
         required: true,
     },
@@ -21,12 +25,15 @@ const userSchema = new Schema({
         required: true,
         select: false
     },
+    mobile: {
+        type: String,
+    },
     type: {
         type: String,
     },
 });
 
-userSchema.pre("save", async function (next) {
+editorSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
         next();
     }
@@ -37,6 +44,6 @@ userSchema.pre("save", async function (next) {
 });
 
 
-const User = mongoose.model("user", userSchema);
+const Editor = mongoose.model("editor", editorSchema);
 
-module.exports = User; 
+module.exports = Editor; 
