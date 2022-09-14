@@ -147,7 +147,7 @@ exports.deleteNewsById = async function (req, res) {
       res.status(200).json({
         code: 200,
         success: true,
-        Sticker: news,
+        data: news,
         message: "News deleted successfully",
       });
     } else {

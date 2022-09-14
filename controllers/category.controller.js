@@ -55,7 +55,7 @@ exports.deleteCategoryById = async function (req, res) {
       res.status(200).json({
         code: 200,
         success: true,
-        Sticker: category,
+        data: category,
         message: "Category deleted successfully",
       });
     } else {
