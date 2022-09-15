@@ -189,42 +189,6 @@ exports.resetPassword = async function (req, res) {
   }
 };
 
-exports.getEditor = function (req, res) {
-  let followers = [];
-  let following = [];
-  try {
-    Editor.findById(req.params.id, function (err, editor) {
-      followers = editor.followers;
-      following = editor.following;
-      if (err) {
-        return res
-          .status(200)
-          .json({ code: 200, success: false, message: "Invalid ID!" });
-      }
-      if (editor) {
-        res.status(200).json({
-          code: 200,
-          success: true,
-          data: editor,
-          followersCount: followers.length,
-          followingsCount: following.length,
-          message: "Profile is received",
-        });
-      } else {
-        res.status(200).json({
-          code: 200,
-          success: false,
-          data: editor,
-          message: "Profile is not found",
-        });
-      }
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ code: 500, success: false, message: "Internal Server Error" });
-  }
-};
 
 exports.getAllEditors = async function (req, res) {
   Editor.find()
